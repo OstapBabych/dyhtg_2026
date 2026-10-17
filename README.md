@@ -1,6 +1,22 @@
 # dyhtg_2026
 
-React + TypeScript application built with Vite.
+A browser fishing game built with React, TypeScript, and Vite.
+
+## Gameplay
+
+Work through ten levels, from an 8 cm minnow to a 400 cm marlin. Each level has a
+fixed target fish. Catch it to advance; an escape lets you retry the same level.
+Later fish swim faster, change targets more often, and make more sudden darts.
+The gold catch meter fills more slowly with each level, so bigger fish require
+longer tracking. It drains at the same rate whenever the fish leaves the bar.
+The fish marker also grows with each level; its centre must stay in the green bar.
+
+Click **Cast the rod** or press **Space**, then react to the bite with **Pull** or
+**Space**. Hold to lift the green bar and release to let it fall. Keep the fish in
+the bar until the gold meter fills. Catch the marlin to finish, then use **Play
+again** to restart. Progress and catches reset when the page is refreshed.
+
+Level sizes and difficulty settings live in `src/features/fishing/fishCatalog.ts`.
 
 ## Getting started
 
@@ -18,6 +34,7 @@ On Windows PowerShell, use `npm.cmd` if execution policy blocks `npm.ps1`.
 - `npm run dev` starts the development server.
 - `npm run build` checks TypeScript and creates a production build in `dist/`.
 - `npm run lint` checks the source with ESLint.
+- `npm test` checks level progression and fish movement using Node's test runner.
 - `npm run preview` serves the production build locally.
 
 ## Project structure

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { CaughtEntry, GamePhase } from './types'
-import { pickRandomFish } from './fishCatalog'
+import { FISHING_LEVELS, getNextLevelIndex } from './fishCatalog'
+import { createFishMotion, moveFish } from './fishMovement'
 
 const CANVAS_WIDTH = 260
 const CANVAS_HEIGHT = 360
@@ -17,7 +18,6 @@ const MAX_VELOCITY = 520
 
 const PROGRESS_X = 200
 const PROGRESS_WIDTH = 30
-const PROGRESS_GAIN_RATE = 0.55
 const PROGRESS_LOSS_RATE = 0.35
 
 const CAST_WAIT_MIN_MS = 900
@@ -33,8 +33,10 @@ export function useFishingGame() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
   const [phase, setPhaseState] = useState<GamePhase>('idle')
-  const [message, setMessage] = useState('Готові закинути вудку?')
+  const [message, setMessage] = useState('Ready to cast your rod?')
   const [inventory, setInventory] = useState<Record<string, CaughtEntry>>({})
+  const [levelIndex, setLevelIndex] = useState(0)
+  const levelIndexRef = useRef(0)
 
   const phaseRef = useRef<GamePhase>('idle')
   const setPhase = useCallback((next: GamePhase) => {
@@ -47,9 +49,7 @@ export function useFishingGame() {
 
   const barYRef = useRef((TRACK_HEIGHT - BAR_HEIGHT) / 2)
   const barVelocityRef = useRef(0)
-  const fishYRef = useRef(TRACK_HEIGHT / 2)
-  const fishTargetYRef = useRef(TRACK_HEIGHT / 2)
-  const fishTimerRef = useRef(0.6)
+  const fishMotionRef = useRef(createFishMotion())
   const progressRef = useRef(0.5)
 
   const castTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -68,16 +68,17 @@ export function useFishingGame() {
   const triggerEscape = useCallback(() => {
     holdingRef.current = false
     setPhase('escaped')
-    setMessage('Риба втекла! Спробуй ще раз.')
+    setMessage('The fish escaped! Try this level again.')
     resultTimeoutRef.current = setTimeout(() => {
       setPhase('idle')
-      setMessage('Готові закинути вудку?')
+      setMessage('Ready to cast your rod?')
     }, RESULT_DISPLAY_MS)
   }, [setPhase])
 
   const triggerCatchSuccess = useCallback(() => {
     holdingRef.current = false
-    const fish = pickRandomFish()
+    const currentIndex = levelIndexRef.current
+    const fish = FISHING_LEVELS[currentIndex].fish
     setInventory((prev) => {
       const existing = prev[fish.name]
       return {
@@ -86,21 +87,29 @@ export function useFishingGame() {
       }
     })
     setPhase('success')
-    setMessage(`Є улов: ${fish.name}!`)
+    const nextIndex = getNextLevelIndex(currentIndex)
+    setMessage(`You caught a ${fish.lengthCm} cm ${fish.name}! ${nextIndex === null ? 'All levels cleared!' : 'Next level unlocked!'}`)
     resultTimeoutRef.current = setTimeout(() => {
+      if (nextIndex === null) {
+        setPhase('complete')
+        setMessage('You caught every fish! Play again to start a new challenge.')
+        return
+      }
+      levelIndexRef.current = nextIndex
+      setLevelIndex(nextIndex)
       setPhase('idle')
-      setMessage('Готові закинути вудку?')
+      setMessage('Ready to cast your rod?')
     }, RESULT_DISPLAY_MS)
   }, [setPhase])
 
   const cast = useCallback(() => {
     if (phaseRef.current !== 'idle') return
     setPhase('waiting')
-    setMessage('Чекаємо на рибу...')
+    setMessage('Waiting for a fish...')
     const wait = CAST_WAIT_MIN_MS + Math.random() * (CAST_WAIT_MAX_MS - CAST_WAIT_MIN_MS)
     castTimeoutRef.current = setTimeout(() => {
       setPhase('bite')
-      setMessage('Клює! Тягни!')
+      setMessage('A bite! Pull!')
       biteTimeoutRef.current = setTimeout(() => {
         if (phaseRef.current === 'bite') triggerEscape()
       }, BITE_WINDOW_MS)
@@ -112,13 +121,11 @@ export function useFishingGame() {
       if (biteTimeoutRef.current) clearTimeout(biteTimeoutRef.current)
       barYRef.current = (TRACK_HEIGHT - BAR_HEIGHT) / 2
       barVelocityRef.current = 0
-      fishYRef.current = Math.random() * TRACK_HEIGHT
-      fishTargetYRef.current = Math.random() * TRACK_HEIGHT
-      fishTimerRef.current = 0.6
+      fishMotionRef.current = createFishMotion()
       progressRef.current = 0.5
       holdingRef.current = true
       setPhase('minigame')
-      setMessage('Тримай рибу в зеленій зоні!')
+      setMessage('Keep the fish in the green zone!')
       return
     }
     if (phaseRef.current === 'minigame') {
@@ -130,26 +137,43 @@ export function useFishingGame() {
     holdingRef.current = false
   }, [])
 
+  const restart = useCallback(() => {
+    if (phaseRef.current !== 'complete') return
+    clearTimers()
+    holdingRef.current = false
+    levelIndexRef.current = 0
+    setLevelIndex(0)
+    setInventory({})
+    setPhase('idle')
+    setMessage('Ready to cast your rod?')
+  }, [clearTimers, setPhase])
+
   useEffect(() => clearTimers, [clearTimers])
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.code !== 'Space') return
+      if (phaseRef.current === 'complete') return
       event.preventDefault()
-      startHold()
+      if (event.repeat) return
+      if (phaseRef.current === 'idle') cast()
+      else startHold()
     }
     function onKeyUp(event: KeyboardEvent) {
       if (event.code !== 'Space') return
+      if (phaseRef.current === 'complete') return
       event.preventDefault()
       endHold()
     }
     window.addEventListener('keydown', onKeyDown)
     window.addEventListener('keyup', onKeyUp)
+    window.addEventListener('blur', endHold)
     return () => {
       window.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('keyup', onKeyUp)
+      window.removeEventListener('blur', endHold)
     }
-  }, [startHold, endHold])
+  }, [cast, startHold, endHold])
 
   useEffect(() => {
     let rafId: number
@@ -170,16 +194,12 @@ export function useFishingGame() {
           barVelocityRef.current = 0
         }
 
-        fishTimerRef.current -= dt
-        if (fishTimerRef.current <= 0) {
-          fishTargetYRef.current = Math.random() * TRACK_HEIGHT
-          fishTimerRef.current = 0.5 + Math.random() * 0.8
-        }
-        fishYRef.current += (fishTargetYRef.current - fishYRef.current) * Math.min(dt * 3, 1)
+        const level = FISHING_LEVELS[levelIndexRef.current]
+        fishMotionRef.current = moveFish(fishMotionRef.current, level, dt)
 
-        const overlap = fishYRef.current >= barYRef.current && fishYRef.current <= barYRef.current + BAR_HEIGHT
+        const overlap = fishMotionRef.current.y >= barYRef.current && fishMotionRef.current.y <= barYRef.current + BAR_HEIGHT
         progressRef.current = clamp(
-          progressRef.current + (overlap ? PROGRESS_GAIN_RATE : -PROGRESS_LOSS_RATE) * dt,
+          progressRef.current + (overlap ? level.progressGainRate : -PROGRESS_LOSS_RATE) * dt,
           0,
           1,
         )
@@ -207,9 +227,26 @@ export function useFishingGame() {
         ctx.fillStyle = '#4caf50'
         ctx.fillRect(TRACK_X, TRACK_Y + barYRef.current, TRACK_WIDTH, BAR_HEIGHT)
 
+        const fishX = TRACK_X + TRACK_WIDTH / 2
+        const fishY = TRACK_Y + fishMotionRef.current.y
+        const fishWidth = 12 + levelIndexRef.current * 2
         ctx.fillStyle = '#ffffff'
+        ctx.strokeStyle = '#172033'
+        ctx.lineWidth = 1.5
         ctx.beginPath()
-        ctx.arc(TRACK_X + TRACK_WIDTH / 2, TRACK_Y + fishYRef.current, 10, 0, Math.PI * 2)
+        ctx.moveTo(fishX - fishWidth + 2, fishY)
+        ctx.lineTo(fishX - fishWidth - 9, fishY - 8)
+        ctx.lineTo(fishX - fishWidth - 9, fishY + 8)
+        ctx.closePath()
+        ctx.fill()
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.ellipse(fishX, fishY, fishWidth, 9, 0, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.stroke()
+        ctx.fillStyle = '#172033'
+        ctx.beginPath()
+        ctx.arc(fishX + fishWidth - 5, fishY - 2, 2, 0, Math.PI * 2)
         ctx.fill()
 
         ctx.fillStyle = '#1b2838'
@@ -251,9 +288,12 @@ export function useFishingGame() {
     canvasHeight: CANVAS_HEIGHT,
     phase,
     message,
+    level: FISHING_LEVELS[levelIndex],
+    totalLevels: FISHING_LEVELS.length,
     inventory: Object.values(inventory),
     cast,
     startHold,
     endHold,
+    restart,
   }
 }

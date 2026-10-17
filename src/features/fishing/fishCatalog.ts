@@ -1,19 +1,29 @@
-import type { Fish } from './types'
+import type { Fish, FishingLevel } from './types'
 
-export const FISH_CATALOG: Fish[] = [
-  { name: 'Карасик', color: '#c0c0c8', weight: 10 },
-  { name: 'Окунь', color: '#e0a94e', weight: 8 },
-  { name: 'Щука', color: '#5a7a4f', weight: 5 },
-  { name: 'Сом', color: '#6b5a4a', weight: 3 },
-  { name: 'Золота рибка', color: '#f2c94c', weight: 1 },
+const FISH_CATALOG: Fish[] = [
+  { name: 'Minnow', color: '#94a3b8', lengthCm: 8 },
+  { name: 'Perch', color: '#d99a30', lengthCm: 20 },
+  { name: 'Trout', color: '#c27c9e', lengthCm: 35 },
+  { name: 'Bass', color: '#658853', lengthCm: 50 },
+  { name: 'Salmon', color: '#de8067', lengthCm: 75 },
+  { name: 'Pike', color: '#52784c', lengthCm: 100 },
+  { name: 'Carp', color: '#b68a3c', lengthCm: 120 },
+  { name: 'Catfish', color: '#807064', lengthCm: 180 },
+  { name: 'Tuna', color: '#477cad', lengthCm: 250 },
+  { name: 'Marlin', color: '#6366c9', lengthCm: 400 },
 ]
 
-export function pickRandomFish(): Fish {
-  const totalWeight = FISH_CATALOG.reduce((sum, fish) => sum + fish.weight, 0)
-  let roll = Math.random() * totalWeight
-  for (const fish of FISH_CATALOG) {
-    roll -= fish.weight
-    if (roll <= 0) return fish
-  }
-  return FISH_CATALOG[0]
+export const FISHING_LEVELS: FishingLevel[] = FISH_CATALOG.map((fish, index) => ({
+  number: index + 1,
+  fish,
+  speed: 60 + index * 16,
+  turnIntervalMin: 0.9 - index * 0.075,
+  turnIntervalMax: 1.5 - index * 0.1,
+  dartChance: index * 0.065,
+  progressGainRate: 0.55 / (1 + index * 0.3),
+}))
+
+/** A null next level means the final fish has been caught. */
+export function getNextLevelIndex(currentIndex: number): number | null {
+  return currentIndex + 1 < FISHING_LEVELS.length ? currentIndex + 1 : null
 }

@@ -5,12 +5,29 @@ export type GamePhase =
   | 'minigame'
   | 'success'
   | 'escaped'
+  | 'complete'
 
 export interface Fish {
   name: string
   color: string
-  /** Lower is rarer. Used as a weight when picking a catch. */
-  weight: number
+  lengthCm: number
+}
+
+export interface FishingLevel {
+  number: number
+  fish: Fish
+  speed: number
+  turnIntervalMin: number
+  turnIntervalMax: number
+  dartChance: number
+  progressGainRate: number
+}
+
+export interface FishMotion {
+  y: number
+  targetY: number
+  turnIn: number
+  speedMultiplier: number
 }
 
 export interface CaughtEntry {
