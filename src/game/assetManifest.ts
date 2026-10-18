@@ -16,7 +16,6 @@ import fishGreatwhite from '../assets/fish-greatwhite.png'
 import fishSeamonster from '../assets/fish-seamonster.png'
 import fishJoboffer from '../assets/fish-joboffer.png'
 
-/** Texture key -> bundled URL, loaded in FishingScene.preload(). */
 export const ASSET_MANIFEST: Record<string, string> = {
   background,
   bobber,

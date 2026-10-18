@@ -46,13 +46,10 @@ const PROGRESS_TRACK_COLOR = 0x11314a
 const PROGRESS_FILL_COLOR = 0xf2c94c
 
 const BUTTON_DISABLED_ALPHA = 0.5
-// The catch art is dropped in at a fixed ~1254x1254 resolution, so size to a target
-// pixel footprint (not a scale factor on the native image) or they'd fill the screen.
+
 const MIN_FISH_SIZE = 40
 const MAX_FISH_SIZE_BONUS = 90
 
-// A bear peeks up from the bottom-left corner while the bobber is biting, then ducks away
-// once the reel minigame starts.
 const BEAR_X = -56
 const BEAR_Y = CANVAS_HEIGHT + 20
 const BEAR_HEIGHT = 180
@@ -149,15 +146,9 @@ export class FishingScene extends Phaser.Scene {
     this.render()
   }
 
-  // ---- scenery (static, drawn once from the hand-drawn tiles/sprites) ----
-
   private drawScenery() {
-    // background.png is one painted scene (sky, water, shore, reeds, trees, the angler with
-    // his rod) at almost exactly our canvas aspect ratio, so it needs no cropping or tiling.
     this.add.image(0, 0, 'background').setOrigin(0, 0).setDisplaySize(CANVAS_WIDTH, CANVAS_HEIGHT)
   }
-
-  // ---- idle scene: fishing line + bobber + bite indicator ----
 
   private createIdleProps() {
     this.fishingLine = this.add.graphics()
@@ -169,8 +160,6 @@ export class FishingScene extends Phaser.Scene {
       .image(QUESTION_MARK_X, QUESTION_MARK_Y, 'question-mark')
       .setDisplaySize(QUESTION_MARK_SIZE, QUESTION_MARK_SIZE)
   }
-
-  // ---- minigame: vertical reel meter ----
 
   private createMinigameProps() {
     this.trackPanel = this.add
@@ -188,8 +177,6 @@ export class FishingScene extends Phaser.Scene {
     this.progressFill = this.add.graphics()
   }
 
-  // ---- bottom-center cast/pull button ----
-
   private createButton() {
     this.buttonBg = this.add
       .image(BUTTON_X, BUTTON_Y, 'button')
@@ -203,8 +190,6 @@ export class FishingScene extends Phaser.Scene {
     this.buttonBg.on('pointerup', () => this.endHold())
     this.buttonBg.on('pointerout', () => this.endHold())
   }
-
-  // ---- top-right wooden catch board ----
 
   private createBoard() {
     this.add.image(BOARD_X + BOARD_WIDTH / 2, BOARD_Y + BOARD_HEIGHT / 2, 'board').setDisplaySize(BOARD_WIDTH, BOARD_HEIGHT)
@@ -224,8 +209,6 @@ export class FishingScene extends Phaser.Scene {
     const lines = Object.values(this.inventory).map((entry, index) => `${index + 1}. ${entry.fish.name}`)
     this.boardText.setText(lines.length > 0 ? lines : ['Nothing yet'])
   }
-
-  // ---- keyboard parity (Space) ----
 
   private setupKeyboard() {
     const keyboard = this.input.keyboard
@@ -252,8 +235,6 @@ export class FishingScene extends Phaser.Scene {
     }
     this.startHold()
   }
-
-  // ---- game state machine ----
 
   private setPhase(next: GamePhase) {
     this.phase = next
@@ -337,8 +318,6 @@ export class FishingScene extends Phaser.Scene {
       this.setPhase('idle')
     })
   }
-
-  // ---- per-frame physics + rendering ----
 
   private updateMinigame(dt: number) {
     const accel = this.holding ? LIFT : GRAVITY

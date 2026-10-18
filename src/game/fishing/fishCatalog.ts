@@ -1,6 +1,5 @@
 import type { Fish, FishingLevel } from './types'
 
-// Ordered small/common -> huge/legendary to match the drawn fish-*.png sprites in src/assets.
 const FISH_CATALOG: Fish[] = [
   { name: 'Old Boot', lengthCm: 25, textureKey: 'fish-boot' },
   { name: 'Shrimp', lengthCm: 35, textureKey: 'fish-shrimp' },
@@ -24,7 +23,6 @@ export const FISHING_LEVELS: FishingLevel[] = FISH_CATALOG.map((fish, index) => 
   progressGainRate: 0.55 / (1 + index * 0.3),
 }))
 
-/** A null next level means the final fish has been caught. */
 export function getNextLevelIndex(currentIndex: number): number | null {
   return currentIndex + 1 < FISHING_LEVELS.length ? currentIndex + 1 : null
 }

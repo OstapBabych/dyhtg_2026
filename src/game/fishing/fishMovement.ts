@@ -7,7 +7,6 @@ export function createFishMotion(): FishMotion {
   return { y: 160, targetY: 220, turnIn: 0, speedMultiplier: 1 }
 }
 
-/** Move continuously toward random targets; later levels turn and dart more often. */
 export function moveFish(
   motion: FishMotion,
   level: FishingLevel,

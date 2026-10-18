@@ -3,7 +3,6 @@ import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 import ts from 'typescript'
 
-// Compile the pure game modules in memory so tests use the same code as the app.
 async function loadGameModule(name) {
   const source = await readFile(new URL(`../src/game/fishing/${name}.ts`, import.meta.url), 'utf8')
   const { outputText } = ts.transpileModule(source, {

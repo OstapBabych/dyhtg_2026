@@ -10,7 +10,6 @@ export type GamePhase =
 export interface Fish {
   name: string
   lengthCm: number
-  /** Texture key loaded in preload(), e.g. 'fish-shrimp'. */
   textureKey: string
 }
 
