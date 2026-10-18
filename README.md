@@ -1,26 +1,29 @@
 # dyhtg_2026
 
-A browser fishing game built with React, TypeScript, and Vite.
+A fullscreen pixel-art fishing game, built with Phaser 4, TypeScript, and Vite.
 
 ## Gameplay
 
-Work through ten levels, from an 8 cm minnow to a 400 cm marlin. Each level has a
-fixed target fish. Catch it to advance; an escape lets you retry the same level.
-Later fish swim faster, change targets more often, and make more sudden darts.
-The gold catch meter fills more slowly with each level, so bigger fish require
-longer tracking. It drains at the same rate whenever the fish leaves the bar.
-The fish marker also grows with each level; its centre must stay in the green bar.
+Work through ten levels, each a different "catch" — starting with an Old Boot and
+ending with a JP Morgan Job Offer, by way of a shrimp, a duck, a swordfish, a whale,
+and a sea monster. Catch the current level's target to advance; letting it escape
+lets you retry the same level. Later levels swim faster, change direction more
+often, and dart more suddenly, so the gold catch meter also fills more slowly —
+bigger catches take longer to reel in. It drains at the same rate whenever the
+catch leaves the green bar.
 
-Click **Cast the rod** or press **Space**, then react to the bite with **Pull** or
-**Space**. Hold to lift the green bar and release to let it fall. Keep the fish in
-the bar until the gold meter fills. Catch the marlin to finish, then use **Play
-again** to restart. Progress and catches reset when the page is refreshed.
+Click **Cast the rod** (or press **Space**), then react when the bobber dips and
+the "!" appears — a bear peeks up from the corner during that window. Press **Reel
+in!** (or hold **Space**) to lift the green bar; release to let it fall. Keep the
+catch inside the bar until the gold meter fills. Catch the final level to finish,
+then **Play again** to restart. Progress resets on page refresh.
 
-Level sizes and difficulty settings live in `src/features/fishing/fishCatalog.ts`.
+Level order, sizes, and difficulty curve live in `src/game/fishing/fishCatalog.ts`.
 
 ## Getting started
 
-Requires Node.js 20.19+ or 22.12+ and npm.
+Requires Node.js 20.19+ or 22.12+ and npm (see `requirements.txt` for exact
+versions this was built against).
 
 ```sh
 npm install
@@ -40,31 +43,26 @@ On Windows PowerShell, use `npm.cmd` if execution policy blocks `npm.ps1`.
 ## Project structure
 
 ```text
-public/                 Static files served without processing
 src/
-  assets/               Images, fonts, and other imported assets
-  components/
-    layout/             Shared page layouts
-    ui/                 Reusable UI components
-  constants/            Shared application constants
-  context/              React context providers
-  features/             Feature-specific components, hooks, and logic
-  hooks/                Shared custom React hooks
-  pages/                Page-level components
-  services/             API clients and external integrations
-  styles/               Global styles and design tokens
-  types/                Shared TypeScript types
-  utils/                Shared utility functions
-  App.tsx               Application composition
-  main.tsx              Browser entry point
+  main.ts                    Phaser.Game bootstrap (960x540 virtual canvas,
+                              fullscreen ENVELOP scaling, pixel-art rendering)
+  game/
+    FishingScene.ts          The single scene: state machine, physics, rendering
+    assetManifest.ts         texture key -> bundled asset URL, loaded in preload()
+    fishing/
+      types.ts               GamePhase, Fish, FishingLevel, FishMotion
+      fishCatalog.ts         The 10 levels and their difficulty curve
+      fishMovement.ts        Pure function driving fish motion in the reel minigame
+      layout.ts              All on-screen coordinates and sizes
+  assets/                    Art (see src/assets/README.md for what each file is)
+tests/
+  fishing.test.mjs           Tests fishCatalog + fishMovement directly (no Phaser)
 ```
 
-Keep feature-specific code together in `features/`; move code to shared folders
-when it is needed by multiple features. Empty folders contain `.gitkeep` files so
-they remain in version control; remove these as you add real files.
+## Art
 
-## Environment variables
-
-Copy `.env.example` to `.env.local` and adjust values for your environment.
-Only variables prefixed with `VITE_` are exposed to browser code. Never put secrets
-in these variables. `VITE_APP_NAME` controls the starter page title.
+`src/assets/background.png` is one painted scene (sky, water, shore, reeds, trees,
+the angler with his rod) at the game's native aspect ratio. Only the pieces that
+move or change at runtime are separate sprites: the bobber, the bite mark, the
+peeking bear, the catch icons, the board, and the button. See
+`src/assets/README.md` for the full list and what's wired up vs. still unused.

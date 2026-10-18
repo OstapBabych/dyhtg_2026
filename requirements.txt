@@ -1,0 +1,26 @@
+# Runtime requirements for dyhtg_2026
+# Not a Python project - this is Node.js/TypeScript. Listed here for quick reference;
+# the authoritative source is package.json (npm installs exact versions from there).
+
+# --- System requirements ---
+node >= 20.19 (tested on 26.10.0)
+npm >= 10 (tested on 11.19.1)
+
+# --- Runtime dependency ---
+phaser == 4.2.1          # game engine (scenes, sprites, input, Scale Manager)
+
+# --- Dev dependencies (build, typecheck, lint) ---
+typescript == 5.9.3
+vite == 7.3.7
+eslint == 9.39.0
+@eslint/js == 9.39.0
+typescript-eslint == 8.46.0
+globals == 16.5.0
+@types/node == 24.10.0
+
+# --- Setup ---
+# npm install
+# npm run dev      starts the dev server (localhost)
+# npm run build     typecheck + production build to dist/
+# npm run lint      eslint check
+# npm test          runs tests/fishing.test.mjs (Node's built-in test runner)
