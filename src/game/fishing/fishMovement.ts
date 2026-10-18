@@ -1,10 +1,10 @@
 import type { FishMotion, FishingLevel } from './types'
 
-export const FISH_MIN_Y = 14
-export const FISH_MAX_Y = 326
+export const FISH_MIN_Y = 20
+export const FISH_MAX_Y = 300
 
 export function createFishMotion(): FishMotion {
-  return { y: 170, targetY: 230, turnIn: 0, speedMultiplier: 1 }
+  return { y: 160, targetY: 220, turnIn: 0, speedMultiplier: 1 }
 }
 
 /** Move continuously toward random targets; later levels turn and dart more often. */

@@ -9,8 +9,9 @@ export type GamePhase =
 
 export interface Fish {
   name: string
-  color: string
   lengthCm: number
+  /** Texture key loaded in preload(), e.g. 'fish-shrimp'. */
+  textureKey: string
 }
 
 export interface FishingLevel {

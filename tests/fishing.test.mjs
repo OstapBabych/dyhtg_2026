@@ -5,7 +5,7 @@ import ts from 'typescript'
 
 // Compile the pure game modules in memory so tests use the same code as the app.
 async function loadGameModule(name) {
-  const source = await readFile(new URL(`../src/features/fishing/${name}.ts`, import.meta.url), 'utf8')
+  const source = await readFile(new URL(`../src/game/fishing/${name}.ts`, import.meta.url), 'utf8')
   const { outputText } = ts.transpileModule(source, {
     compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
   })
@@ -51,12 +51,12 @@ test('each catch unlocks exactly the next level and the last catch finishes', ()
 })
 
 test('later fish cover more distance in the same frame without teleporting', () => {
-  const motion = { y: 170, targetY: 300, turnIn: 1, speedMultiplier: 1 }
+  const motion = { y: 60, targetY: 120, turnIn: 1, speedMultiplier: 1 }
   const easy = moveFish(motion, first, 1 / 60)
   const hard = moveFish(motion, last, 1 / 60)
   assert.ok(hard.y > easy.y)
   assert.ok(hard.y - motion.y <= last.speed / 60 + 1e-10)
-  assert.equal(motion.y, 170)
+  assert.equal(motion.y, 60)
 })
 
 test('higher levels retarget sooner and can dart on the same random roll', () => {
@@ -92,10 +92,10 @@ test('fish stay within the track through sustained random movement at every leve
 })
 
 test('movement is consistent across frame rates between turns and never overshoots', () => {
-  const motion = { y: 170, targetY: 300, turnIn: 1, speedMultiplier: 1 }
+  const motion = { y: 60, targetY: 120, turnIn: 1, speedMultiplier: 1 }
   const oneFrame = moveFish(motion, first, 0.04)
   const twoFrames = moveFish(moveFish(motion, first, 0.02), first, 0.02)
   assert.ok(Math.abs(oneFrame.y - twoFrames.y) < 1e-10)
-  const nearTarget = { ...motion, y: 298.5 }
-  assert.equal(moveFish(nearTarget, last, 0.05).y, 300)
+  const nearTarget = { ...motion, y: 118.5 }
+  assert.equal(moveFish(nearTarget, last, 0.05).y, 120)
 })
